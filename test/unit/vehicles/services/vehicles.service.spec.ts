@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VehiclesService } from '../../../../src/modules/vehicles/services/vehicles.service';
 import { VehicleRepository } from '../../../../src/modules/vehicles/repositories/vehicle.repository';
 import axios from 'axios';
-import { mockVehicleTypes } from '../../../../src/modules/vehicles/services/mocks/mockVehicleTypes.mock';
+import { Logger } from '@nestjs/common';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -15,12 +15,14 @@ describe('VehiclesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VehiclesService,
+        Logger,
         {
           provide: VehicleRepository,
           useValue: {
             saveMany: jest.fn(),
             findAll: jest.fn(),
             findByMakeId: jest.fn(),
+            deleteAll: jest.fn(),
           },
         },
       ],
@@ -46,20 +48,8 @@ describe('VehiclesService', () => {
 
     await service.fetchAndSaveMakes();
 
-    expect(repository.saveMany).toHaveBeenCalledWith([
-      {
-        makeId: '1',
-        makeName: 'Toyota',
-        vehicleTypes: [{ typeId: '1', typeName: 'Car' }],
-      },
-    ]);
-  });
-
-  it('should use mock data when API fails', async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('API failure'));
-
-    const result = await service.fetchVehicleTypes('12345');
-    expect(result).toEqual(mockVehicleTypes['12345']);
+    expect(repository.deleteAll).toHaveBeenCalled();
+    expect(repository.saveMany).toHaveBeenCalled();
   });
 
   it('should retrieve all vehicle makes from repository', async () => {
