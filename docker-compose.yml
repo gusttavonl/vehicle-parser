@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      MONGO_URI: mongodb://mongo:27017/vehicleparser
+      GET_MAKES_URL: https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=XML
+      GET_VEHICLE_TYPES_URL: https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleTypesForMakeId
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
